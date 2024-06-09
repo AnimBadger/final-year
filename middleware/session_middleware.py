@@ -11,5 +11,7 @@ class SessionMiddleware(BaseHTTPMiddleware):
         request.state.session_id = session_id
         response = await call_next(request)
         if "sessionId" not in request.cookies:
-            response.set_cookie(key="sessionId", value=session_id)
+            if hasattr(response, "set_cookie"):
+                response.set_cookie(key="sessionId", value=session_id)
         return response
+
