@@ -1,0 +1,36 @@
+from fastapi import FastAPI
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
+from config import get_setting
+from middleware.session_middleware import SessionMiddleware
+import uvicorn
+
+from router.auth import authentication
+from router.base import base_txt_to_twi
+
+load_dotenv()
+settings = get_setting()
+app = FastAPI(debug=True)
+app.add_middleware(SessionMiddleware)
+
+client = AsyncIOMotorClient(settings.MONGODB_URI)
+database = client.get_default_database()
+
+app.include_router(authentication.router, prefix='/api/v1/auth')
+app.include_router(base_txt_to_twi.router, prefix='/api/v1/base')
+
+
+async def startup_db_client():
+    app.mongodb_client = AsyncIOMotorClient(settings.MONGODB_URI)
+    app.database = app.mongodb_client.get_default_database()
+
+
+async def shutdown_db_client():
+    await app.mongodb_client.close()
+
+
+app.add_event_handler("startup", startup_db_client)
+app.add_event_handler("shutdown", shutdown_db_client)
+
+if __name__ == '__main__':
+    uvicorn.run('main:app', host='0.0.0.0', port=8000)
