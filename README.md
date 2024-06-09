@@ -94,7 +94,7 @@ This is a FastAPI application that allows users to upload English files (docx, d
 - **Upload File:**
 
     ```http
-    POST /api/v1/base/upload/{c_type}
+    POST /api/v1/base/audio_files/upload/{c_type}
     ```
 
     **Path Parameter:**
@@ -126,7 +126,7 @@ This is a FastAPI application that allows users to upload English files (docx, d
 Using `curl` to upload a file:
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/base/upload/{c_type}" \
+curl -X POST "http://localhost:8000/api/v1/base/upload/full" \
     -H "Authorization: Bearer your_jwt_token" \
     -F "file=@/path/to/your/file.docx"
 ```
