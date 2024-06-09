@@ -25,7 +25,7 @@ This is a FastAPI application that allows users to upload English files (docx, d
 
     ```bash
     git clone https://github.com/AnimBadger/final-year.git
-    cd fina-year
+    cd final-year
     ```
    
 2. **Environment Configuration:**
@@ -94,7 +94,7 @@ This is a FastAPI application that allows users to upload English files (docx, d
 - **Upload File:**
 
     ```http
-    POST api/v1/base/upload/{c_type}
+    POST /api/v1/base/upload/{c_type}
     ```
 
     **Path Parameter:**
@@ -108,7 +108,7 @@ This is a FastAPI application that allows users to upload English files (docx, d
 - **List Audio Files:**
 
     ```http
-    GET api/v1/base/audio_files
+    GET /api/v1/base/audio_files
     ```
 
   - **Download Audio File:**
