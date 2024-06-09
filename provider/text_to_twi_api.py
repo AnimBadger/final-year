@@ -2,7 +2,7 @@ import httpx
 import os
 from fastapi import HTTPException
 from dotenv import load_dotenv
-from .twi_to_audio_api import convert_text_to_twi
+from .twi_to_audio_api import convert_text_to_twi_audio
 
 load_dotenv()
 
@@ -17,7 +17,7 @@ headers = {
 }
 
 
-async def convert_to_twi(text):
+async def convert_to_twi(text: str, _: dict):
     data = {
         'in': text,
         'lang': 'en-tw'
@@ -26,6 +26,6 @@ async def convert_to_twi(text):
         response = await httpx_client.post(url, headers=headers, json=data)
     if response.status_code == 200:
         text = response.text
-        return await convert_text_to_twi(text)
+        return await convert_text_to_twi_audio(text, _)
     else:
         raise HTTPException(status_code=401, detail='Could not process request, try again later')

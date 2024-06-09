@@ -25,7 +25,7 @@ headers = {
 }
 
 
-async def convert_text_to_twi(text):
+async def convert_text_to_twi_audio(text: str, dispatch: dict):
     data = {
         "text": text,
         "language": 'tw'
@@ -42,7 +42,7 @@ async def convert_text_to_twi(text):
                 content = response.content
                 break
         except (httpx.HTTPStatusError, httpx.RequestError) as exc:
-            if attempt == clientretries - 1:
+            if attempt == retries - 1:
                 raise HTTPException(
                     status_code=401, detail=f'Failed after {retries} attempts: {str(exc)}'
                 )
@@ -55,11 +55,19 @@ async def convert_text_to_twi(text):
         )
 
     audio_id = str(uuid.uuid4())
+    size = await calculate_to_mb(len(content))
     file_data = {
+        'username': dispatch['username'],
+        'file_name': dispatch['file_name'] + 'audio',
         'audio_id': audio_id,
         'file': Binary(content),
-        'created_at': datetime.utcnow()
+        'created_at': datetime.utcnow(),
+        'size': str(round(size, 2)) + 'mb'
     }
 
     await audio_files_collection.insert_one(file_data)
     return audio_id
+
+
+async def calculate_to_mb(size_in_byte: int) -> float:
+    return size_in_byte / (1024 * 1024)

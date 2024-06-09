@@ -16,7 +16,7 @@ headers = {
 }
 
 
-async def get_summary(text: str):
+async def get_summary(text: str, _: dict):
     payload = {
         'sourceType': 'TEXT',
         'source': text
@@ -26,7 +26,7 @@ async def get_summary(text: str):
     if response.status_code == 200:
         response_data = response.json()
         summary = response_data['summary']
-        return await convert_to_twi(summary)
+        return await convert_to_twi(summary, _)
     raise HTTPException(
         status_code=401, detail='Error processing request, retry after some time'
     )
