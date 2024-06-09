@@ -29,7 +29,7 @@ client = AsyncIOMotorClient(settings.MONGODB_URI)
 database = client.get_default_database()
 
 app.include_router(authentication.router, prefix='/api/v1/auth')
-app.include_router(base_txt_to_twi.router, prefix='/api/v1/base')
+app.include_router(base_txt_to_twi.router, prefix='/api/v1/base/audio_files')
 
 
 async def startup_db_client():
