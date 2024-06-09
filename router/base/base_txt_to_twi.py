@@ -1,5 +1,5 @@
 import io
-from fastapi import APIRouter, HTTPException, status, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, status, UploadFile, File, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import get_setting
 from fastapi.responses import StreamingResponse
@@ -32,8 +32,9 @@ def is_allowed_extension(filename: str) -> bool:
 
 
 @router.post('/upload/{c_type}', response_model=UploadResponseModel, status_code=status.HTTP_201_CREATED)
-async def upload_file(c_type: str, file: UploadFile = File(...), token_data: TokenData = Depends(get_current_user)):
-    logger.info(f'')
+async def upload_file(c_type: str, request: Request, file: UploadFile = File(...),
+                      token_data: TokenData = Depends(get_current_user)):
+    session_id = request.state.session_id
     if not is_allowed_extension(file.filename):
         raise HTTPException(status_code=400,
                             detail='Invalid file extension. Only .txt, .pdf, .docx, or .doc files are allowed.')
@@ -46,8 +47,7 @@ async def upload_file(c_type: str, file: UploadFile = File(...), token_data: Tok
 
     # add converters here
     file_extension = os.path.splitext(file.filename)[1].lower()
-    print(file_extension)
-    print(file)
+    file_name = os.path.splitext(file.filename)[0].lower()
 
     converters = {
         '.docx': docx_to_text_converter.convert_docx_to_text,
@@ -58,10 +58,15 @@ async def upload_file(c_type: str, file: UploadFile = File(...), token_data: Tok
     conversion_function = converters.get(file_extension)
     text = await conversion_function(file)
 
+    upload_dispatch = {
+        'username': token_data.username,
+        'file_name': file_name
+    }
+
     if c_type.lower() == 'summarize':
-        await summary_api.get_summary(text)
+        audio_id = await summary_api.get_summary(text, upload_dispatch)
     else:
-        await text_to_twi_api.convert_to_twi(text)
+        audio_id = await text_to_twi_api.convert_to_twi(text, upload_dispatch)
 
     file_data = {
         '_id': file_id,
@@ -71,7 +76,7 @@ async def upload_file(c_type: str, file: UploadFile = File(...), token_data: Tok
         'created_at': datetime.utcnow()
     }
     await uploads_collection.insert_one(file_data)
-    return UploadResponseModel(message='Success', file_id=file_id)
+    return UploadResponseModel(message='Success', file_id=audio_id)
 
 
 @router.get('/{audio_id}/download')
@@ -79,6 +84,22 @@ async def download_audio(audio_id: str, _: TokenData = Depends(get_current_user)
     file_data = await audio_files_collection.find_one({'audio_id': audio_id})
     if not file_data:
         raise HTTPException(status_code=404, detail='Audio file not found')
-    return StreamingResponse(io.BytesIO(file_data['file']), media_type='audio/mpeg', headers={'Content-Disposition': f'attachment; filename={audio_id}.mp3'})
+    return StreamingResponse(io.BytesIO(file_data['file']), media_type='audio/mpeg',
+                             headers={'Content-Disposition': f'attachment; filename={file_data["file_name"]}-audio.mp3'})
 
 
+@router.get('/audio_files')
+async def list_audio_files(token_data: TokenData = Depends(get_current_user)):
+    files_cursor = audio_files_collection.find({'username': token_data.username})
+    files = await files_cursor.to_list(length=None)
+
+    listed_files = []
+    for file in files:
+        file_data = {
+            'file_name': file['file_name'],
+            'audio_id': file['audio_id'],
+            'size': file['size']
+        }
+        listed_files.append(file_data)
+
+    return listed_files
