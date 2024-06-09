@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
@@ -17,7 +19,8 @@ app.add_middleware(SessionMiddleware)
 
 origins = [
     'http://localhost',
-    'http://localhost:8000'
+    'http://localhost:8000',
+    'http://13.51.241.186:80'
 ]
 
 app.add_middleware(CORSMiddleware,
@@ -47,4 +50,6 @@ app.add_event_handler("startup", startup_db_client)
 app.add_event_handler("shutdown", shutdown_db_client)
 
 if __name__ == '__main__':
+    host = os.getenv('HOST', '0.0.0.0')
+    port = int(os.getenv('PORT', 8000))
     uvicorn.run('main:app', host='0.0.0.0', port=8000)
