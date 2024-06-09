@@ -36,6 +36,7 @@ async def upload_file(c_type: str, request: Request, file: UploadFile = File(...
                       token_data: TokenData = Depends(get_current_user)):
     session_id = request.state.session_id
     if not is_allowed_extension(file.filename):
+        logger.info(f'[{session_id}] error uploading file')
         raise HTTPException(status_code=400,
                             detail='Invalid file extension. Only .txt, .pdf, .docx, or .doc files are allowed.')
 
