@@ -7,7 +7,7 @@ class UserModel(BaseModel):
     email: EmailStr
     password: str
     institution: Optional[str] = None
-    otp: Optional[int] = None
+    otp: Optional[str] = None
     activated: bool = False
 
     @validator('password')
