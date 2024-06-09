@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from dotenv import load_dotenv
 from config import get_setting
+from fastapi.middleware.cors import CORSMiddleware
 from middleware.session_middleware import SessionMiddleware
 import uvicorn
 
@@ -12,6 +13,17 @@ load_dotenv()
 settings = get_setting()
 app = FastAPI(debug=True)
 app.add_middleware(SessionMiddleware)
+
+origins = [
+    'http://localhost',
+    'http://localhost:8000'
+]
+
+app.add_middleware(CORSMiddleware,
+                   allow_origins=origins,
+                   all_credentials=True,
+                   allow_methods='*',
+                   allow_headers='*')
 
 client = AsyncIOMotorClient(settings.MONGODB_URI)
 database = client.get_default_database()
