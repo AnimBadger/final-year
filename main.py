@@ -5,6 +5,7 @@ from config import get_setting
 from fastapi.middleware.cors import CORSMiddleware
 from middleware.session_middleware import SessionMiddleware
 import uvicorn
+from router import checker
 
 from router.auth import authentication
 from router.base import base_txt_to_twi
@@ -21,7 +22,7 @@ origins = [
 
 app.add_middleware(CORSMiddleware,
                    allow_origins=origins,
-                   all_credentials=True,
+                   allow_credentials=True,
                    allow_methods='*',
                    allow_headers='*')
 
@@ -30,6 +31,7 @@ database = client.get_default_database()
 
 app.include_router(authentication.router, prefix='/api/v1/auth')
 app.include_router(base_txt_to_twi.router, prefix='/api/v1/base/audio_files')
+app.include_router(checker.router)
 
 
 async def startup_db_client():
