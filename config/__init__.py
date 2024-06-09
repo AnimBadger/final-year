@@ -7,7 +7,7 @@ def get_setting():
     if env == 'development':
         from .development import Setting
 
-    if env == 'staging':
+    elif env == 'staging':
         from .staging import Setting
 
     else:
