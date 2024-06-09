@@ -111,14 +111,14 @@ This is a FastAPI application that allows users to upload English files (docx, d
     GET /api/v1/base/audio_files
     ```
 
-  - **Download Audio File:**
+- **Download Audio File:**
 
-      ```http
-      GET /audio_files/{file_id}/download
-      ```
-    **Path Parameter:**
+    ```http
+    GET /audio_files/{file_id}/download
+    ```
+  **Path Parameter:**
 
-    - `file_id` (string): id of file to be downloaded.
+  - `file_id` (string): id of file to be downloaded.
         
 
 ### Example Request
