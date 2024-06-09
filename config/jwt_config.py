@@ -1,6 +1,6 @@
 import os
 from motor.motor_asyncio import AsyncIOMotorClient
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 import jwt
@@ -44,7 +44,8 @@ def create_refresh_token(session_id: str, data: dict):
     return encoded_jwt
 
 
-async def get_current_user(session_id, token: str = Depends(oauth2_scheme)):
+async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)):
+    session_id = request.state.session_id
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='Could not verify credentials',
