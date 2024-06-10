@@ -7,7 +7,7 @@ load_dotenv()
 
 def get_setting():
     env = os.getenv("ENV", "development")
-    logger.log(f'Environment found {env}')
+    logger.info(f'Environment found {env}')
 
     if env == 'development':
         from .development import Setting
