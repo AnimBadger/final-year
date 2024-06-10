@@ -17,5 +17,5 @@ def get_setting():
 
     else:
         raise ValueError(f'Unknown environment {env}')
-    logger.log(f'Settings? {Setting}')
+    logger.info(f'Settings? {Setting}')
     return Setting
