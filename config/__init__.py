@@ -1,8 +1,13 @@
 import os
+from dotenv import load_dotenv
+from config.logger_config import logger
+
+load_dotenv()
 
 
 def get_setting():
     env = os.getenv("ENV", "development")
+    logger.log(f'Environment found {env}')
 
     if env == 'development':
         from .development import Setting
@@ -12,5 +17,5 @@ def get_setting():
 
     else:
         raise ValueError(f'Unknown environment {env}')
-
+    logger.log(f'Settings? {Setting}')
     return Setting
