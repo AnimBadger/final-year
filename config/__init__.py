@@ -2,7 +2,7 @@ import os
 
 
 def get_setting():
-    env = os.getenv("ENV", "development")
+    env = os.getenv("ENV", "staging")
 
     if env == 'development':
         from .development import Setting
