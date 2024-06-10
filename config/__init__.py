@@ -13,4 +13,4 @@ def get_setting():
     else:
         raise ValueError(f'Unknown environment {env}')
 
-    return Setting()
+    return Setting
