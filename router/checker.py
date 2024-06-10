@@ -10,8 +10,7 @@ router = APIRouter()
 
 @router.get('/health')
 async def health_check():
-    logger.info(f'Mongo client in environment {client}')
-    print(f'Mongo client in environment {client}')
+    logger.info(f'Mongo client in environment {client}, database {database}')
     try:
         await database.command('ping')
         return {'message': 'All is alright'}

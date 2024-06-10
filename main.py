@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from middleware.session_middleware import SessionMiddleware
 import uvicorn
 from router import checker
-
+from config.logger_config import logger
 from router.auth import authentication
 from router.base import base_txt_to_twi
 
@@ -52,4 +52,5 @@ app.add_event_handler("shutdown", shutdown_db_client)
 if __name__ == '__main__':
     HOST = os.getenv('HOST', '0.0.0.0')
     PORT = int(os.getenv('PORT', 8000))
+    logger.log(f'Host used - {HOST}, Port used {PORT}')
     uvicorn.run('main:app', host=HOST, port=PORT)
