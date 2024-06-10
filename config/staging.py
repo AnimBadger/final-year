@@ -1,4 +1,4 @@
 class Setting:
-    MONGODB_URI = 'mongodb://localhost:27017/ed_proj'
+    MONGODB_URI = 'mongodb://mongo:27017/ed_proj'
     DEBUG = True
     LOG_LEVEL = 'DEBUG'
