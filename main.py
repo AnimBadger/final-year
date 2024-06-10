@@ -50,6 +50,6 @@ app.add_event_handler("startup", startup_db_client)
 app.add_event_handler("shutdown", shutdown_db_client)
 
 if __name__ == '__main__':
-    host = os.getenv('HOST', '0.0.0.0')
-    port = int(os.getenv('PORT', 8000))
-    uvicorn.run('main:app', host=host, port=port)
+    HOST = os.getenv('HOST', '0.0.0.0')
+    PORT = int(os.getenv('PORT', 8000))
+    uvicorn.run('main:app', host=HOST, port=PORT)
