@@ -6,6 +6,7 @@ class UserModel(BaseModel):
     username: str
     email: EmailStr
     password: str
+    confirm_password: str
     institution: Optional[str] = None
     otp: Optional[str] = None
     activated: bool = False
@@ -27,3 +28,8 @@ class UserResponseModel(BaseModel):
     email: EmailStr
     username: str
     activated: bool
+
+
+class ResetPasswordModel(BaseModel):
+    password: str
+    confirm_password: str
