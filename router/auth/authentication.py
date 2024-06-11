@@ -5,7 +5,7 @@ from starlette.requests import Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from config.jwt_config import get_current_user, black_listed_collection, oauth2_scheme
-from model.user_model import UserModel, UserResponseModel
+from model.user_model import UserModel, UserResponseModel, ResetPasswordModel
 from fastapi.security import OAuth2PasswordRequestForm
 from config import get_setting
 from config.jwt_config import create_access_token, create_refresh_token
@@ -47,7 +47,11 @@ async def authenticate_user(session_id: str, username: str, password: str):
 @router.post('/register', response_model=UserResponseModel, status_code=status.HTTP_201_CREATED)
 async def create_user(user: UserModel, request: Request):
     session_id = request.state.session_id
-    user_dict = user.dict()
+    if user.password != user.confirm_password:
+        return HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail='Passwords do not much'
+        )
+    user_dict = user.dict(exclude={'confirm_password'})
     logger.info(f'[{session_id}] received request to create account')
     user_email = await user_collection.find_one({'email': user.email})
     username = await user_collection.find_one({'username': user.username})
@@ -118,7 +122,7 @@ async def refresh(httpRequest: Request, request: RefreshToken):
     session_id = httpRequest.state.session_id
     try:
         logger.info(f'[{session_id}] received request to refresh token, trying')
-        user = await get_current_user(request.refresh_token)
+        user = await get_current_user(httpRequest, token=request.refresh_token)
         username: str = user.username
         logger.info(f'[{session_id}] returning username for refresh token')
     except HTTPException:
@@ -156,3 +160,51 @@ async def confirm_otp(user_otp: str):
         )
     await user_collection.find_one_and_update({'otp': user_otp}, {'$set': {'activated': True}})
     return {'success': 'user activated'}
+
+
+@router.get('/reset-password')
+async def reset_password(email: str):
+    # get email from database
+    user = await user_collection.find_one({'email': email})
+    if user is None:
+        raise HTTPException(
+            status_code=404, detail='User not found'
+        )
+    # send otp to mail
+    user_otp = str(uuid.uuid4())[:5]
+    content = f'''
+        <h1 style="background-color: #add8e6; color: white; padding: 10px; display: inline-block">
+            Your Password Reset code
+        </h1>
+        <p>Use this code to reset your password: {user_otp}</p>
+        <p><em>Regards,</em></p>
+        <p><em>T2TB Team</em></p>
+        '''
+
+    email_sender_response = await mail_sender_utility.send_email(email, 'Password Reset', content)
+    if email_sender_response != 'success':
+        await user_collection.find_one_and_update({'email': email}, {'$set': {'reset_otp': user_otp}})
+        return {'message': 'Password reset otp sent'}
+    else:
+        HTTPException(
+            status_code=500, detail='Sending mail failed, try again later'
+        )
+
+
+@router.patch('/reset/{user_otp}', status_code=status.HTTP_202_ACCEPTED)
+async def confirm_and_reset_password(user_otp: str, password_reset: ResetPasswordModel):
+    user = await user_collection.find_one({'reset_otp': user_otp})
+    if user is None:
+        return HTTPException(
+            status_code=404, detail='User not found'
+        )
+    if password_reset.password != password_reset.confirm_password:
+        return HTTPException(
+            status_code=409, detail='Passwords do not match'
+        )
+    hashed_password = pwd_context.hash(password_reset.password)
+    try:
+        await user_collection.find_one_and_update({'user_otp': user_otp}, {'$set': {'password': hashed_password}})
+        return {'message': 'Password reset successful'}
+    except Exception:
+        return HTTPException(status_code=500, detail='Error updating password')
