@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from config import get_setting
 from fastapi.responses import StreamingResponse
 from model.upload_file_model import UploadResponseModel
+from model.download_audio_model import CommentModel
 import uuid
 import os
 from config.logger_config import logger
@@ -23,6 +24,7 @@ router = APIRouter()
 client = AsyncIOMotorClient(get_setting().MONGODB_URI)
 database = client.get_default_database()
 uploads_collection = database['uploads']
+comments_collection = database['comments']
 
 ALLOWED_EXTENSIONS = {".txt", ".pdf", ".docx", ".doc"}
 
@@ -104,3 +106,25 @@ async def list_audio_files(token_data: TokenData = Depends(get_current_user)):
         listed_files.append(file_data)
 
     return listed_files
+
+
+@router.post('/add-comment', status_code=201)
+async def add_comment(comment: CommentModel, token_data: TokenData = Depends(get_current_user)):
+    audio_file = await uploads_collection.find_one({'audio_id': comment.audio_file_id})
+    if audio_file is None:
+        return HTTPException(
+            status_code=404, detail='Audio file not found'
+        )
+    comment_data = {
+        'comment_id': str(uuid.uuid4())[:5],
+        'user': token_data.username,
+        'comment': comment.comment,
+        'created': datetime.utcnow()
+    }
+    try:
+        await comments_collection.insert_one(comment_data)
+        return {'message', 'Comment added'}
+    except Exception:
+        return HTTPException(
+            status_code=500, detail='Error adding comment, try again later'
+        )
