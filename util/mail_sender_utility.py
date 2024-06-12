@@ -25,7 +25,7 @@ async def send_email(recipient: str, title: str, body: str):
         "ishtml": "true",
         "sendto": recipient,
         "name": sender,
-        "replyTo": "anim.ansah.stephen@gmail.com",
+        "replyTo": "noReply@gmail.com",
         "title": title,
         "body": body
     }
