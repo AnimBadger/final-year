@@ -10,7 +10,7 @@ import uvicorn
 from router import checker
 from config.logger_config import logger
 from router.auth import authentication
-from router.base import base_txt_to_twi
+from router.base import base_txt_to_twi, administrator
 
 load_dotenv()
 settings = get_setting()
@@ -33,7 +33,8 @@ client = AsyncIOMotorClient(settings.MONGODB_URI)
 database = client.get_default_database()
 
 app.include_router(authentication.router, prefix='/api/v1/auth')
-app.include_router(base_txt_to_twi.router, prefix='/api/v1/base/audio_files')
+app.include_router(base_txt_to_twi.router, prefix='/api/v1/base')
+app.include_router(administrator.router, prefix='/api/v1/admin')
 app.include_router(checker.router)
 
 
