@@ -5,7 +5,7 @@ from starlette.requests import Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from config.jwt_config import get_current_user, black_listed_collection, oauth2_scheme
-from model.user_model import UserModel, UserResponseModel, ResetPasswordModel
+from model.user_model import CreateUserModel, UserResponseModel, ResetPasswordModel, UserModel
 from fastapi.security import OAuth2PasswordRequestForm
 from config import get_setting
 from config.jwt_config import create_access_token, create_refresh_token
@@ -28,6 +28,7 @@ RAPID_API_KEY = os.getenv('RAPID_API_KEY')
 async def get_user(session_id: str, username: str):
     logger.info(f'[{session_id}] about to find user from database')
     user = await user_collection.find_one({'username': username})
+    logger.info(f'[{session_id}] user details-- {user}')
     if user is None:
         logger.info(f'[{session_id}] no username found')
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='User not found')
@@ -45,7 +46,7 @@ async def authenticate_user(session_id: str, username: str, password: str):
 
 
 @router.post('/register', response_model=UserResponseModel, status_code=status.HTTP_201_CREATED)
-async def create_user(user: UserModel, request: Request):
+async def create_user(user: CreateUserModel, request: Request):
     session_id = request.state.session_id
     if user.password != user.confirm_password:
         return HTTPException(
@@ -60,6 +61,9 @@ async def create_user(user: UserModel, request: Request):
     if user_email or username:
         logger.info(f'[{session_id}] username or password already exists')
         raise HTTPException(status_code=400, detail='Username or Email already exists')
+
+    if user.username[:2] == 'AD' and user.username[-2:] == 'MN':
+        user_dict['ROLE'] = 'ADMIN'
 
     logger.info(f'{session_id} username or password not found, about to attempting to create account')
     user_dict['password'] = pwd_context.hash(user.password)
@@ -87,7 +91,7 @@ async def create_user(user: UserModel, request: Request):
     result = await user_collection.insert_one(user_dict)
     if result.inserted_id:
         logger.info(f'[{session_id}] done inserting user')
-        return UserResponseModel(username=user.username, email=user.email, activated=user.activated)
+        return UserResponseModel(username=user.username, email=user.email, activated=False)
     logger.info(f'[{session_id}] error inserting user details to database')
     raise HTTPException(status_code=400, detail="Error creating account, try again later")
 

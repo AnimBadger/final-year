@@ -2,14 +2,12 @@ from pydantic import BaseModel, EmailStr, validator
 from typing import Optional
 
 
-class UserModel(BaseModel):
+class CreateUserModel(BaseModel):
     username: str
     email: EmailStr
     password: str
     confirm_password: str
     institution: Optional[str] = None
-    otp: Optional[str] = None
-    activated: bool = False
 
     @validator('password')
     def validate_password(cls, value: str) -> str:
@@ -33,3 +31,12 @@ class UserResponseModel(BaseModel):
 class ResetPasswordModel(BaseModel):
     password: str
     confirm_password: str
+
+
+class UserModel(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    institution: Optional[str] = None
+    otp: Optional[str] = None
+    activated: bool = False
