@@ -64,6 +64,8 @@ async def create_user(user: CreateUserModel, request: Request):
 
     if user.username[:2] == 'AD' and user.username[-2:] == 'MN':
         user_dict['ROLE'] = 'ADMIN'
+    else:
+        user_dict['ROLE'] = 'USER'
 
     logger.info(f'{session_id} username or password not found, about to attempting to create account')
     user_dict['password'] = pwd_context.hash(user.password)
@@ -117,7 +119,7 @@ async def log_in(request: Request, form_data: OAuth2PasswordRequestForm = Depend
     access_token = create_access_token(session_id, data={'sub': user.username})
     refresh_token = create_refresh_token(session_id, data={'sub': user.username})
     logger.info(f'[{session_id}] done generating access token')
-    return {'username': user.username, 'access-token': access_token, 'refresh-token': refresh_token,
+    return {'username': user.username,'ROLE': user.ROLE, 'access-token': access_token, 'refresh-token': refresh_token,
             'token-type': 'Bearer'}
 
 
