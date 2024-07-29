@@ -39,5 +39,4 @@ class UserModel(BaseModel):
     password: str
     institution: Optional[str] = None
     otp: Optional[str] = None
-    activated: bool = False
     ROLE: str = 'USER'

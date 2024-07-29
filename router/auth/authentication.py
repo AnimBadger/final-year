@@ -53,6 +53,7 @@ async def create_user(user: CreateUserModel, request: Request):
             status_code=status.HTTP_409_CONFLICT, detail='Passwords do not much'
         )
     user_dict = user.dict(exclude={'confirm_password'})
+    user_dict['activated'] = False
     logger.info(f'[{session_id}] received request to create account')
     user_email = await user_collection.find_one({'email': user.email})
     username = await user_collection.find_one({'username': user.username})
