@@ -108,6 +108,13 @@ def verify_password(session_id: str, plain_password: str, hashed_password: str):
 async def log_in(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     session_id = request.state.session_id
     logger.info(f'[{session_id}] received, about to authenticate')
+    user_query = await user_collection.find_one({'username': form_data.username})
+    if user_query['activated'] is False:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Account not activated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     user = await authenticate_user(session_id, form_data.username, form_data.password)
     if not user:
         logger.info(f'[{session_id}] no user found')
