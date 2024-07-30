@@ -39,9 +39,20 @@ async def get_user(session_id: str, username: str):
 async def authenticate_user(session_id: str, username: str, password: str):
     logger.info(f'[{session_id}] about to authenticate user {username}')
     user = await get_user(session_id, username)
+    
+    if user is None:
+        logger.info(f'[{session_id}] user {username} not found')
+        return None
+    
     if not verify_password(session_id, password, user.password):
-        return HTTPException(status_code=401, detail='Incorrect details, check and retry')
-    logger.info(f'[{session_id}] verifying user details')
+        logger.info(f'[{session_id}] incorrect password for user {username}')
+        return None
+    
+    if not user.activated:
+        logger.info(f'[{session_id}] user {username} account not activated')
+        return None
+    
+    logger.info(f'[{session_id}] user {username} authenticated successfully')
     return user
 
 
@@ -107,28 +118,30 @@ def verify_password(session_id: str, plain_password: str, hashed_password: str):
 @router.post('/login')
 async def log_in(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     session_id = request.state.session_id
-    logger.info(f'[{session_id}] received, about to authenticate')
-    user_query = await user_collection.find_one({'username': form_data.username})
-    if user_query['activated'] is False:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Account not activated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    logger.info(f'[{session_id}] received login request, about to authenticate')
+    
     user = await authenticate_user(session_id, form_data.username, form_data.password)
+    
     if not user:
-        logger.info(f'[{session_id}] no user found')
+        logger.info(f'[{session_id}] authentication failed for user {form_data.username}')
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect username or password or account not activated",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    logger.info(f'[{session_id}] user found, generating access token')
+    
+    logger.info(f'[{session_id}] user {form_data.username} authenticated, generating access token')
     access_token = create_access_token(session_id, data={'sub': user.username})
     refresh_token = create_refresh_token(session_id, data={'sub': user.username})
-    logger.info(f'[{session_id}] done generating access token')
-    return {'username': user.username,'ROLE': user.ROLE, 'access-token': access_token, 'refresh-token': refresh_token,
-            'token-type': 'Bearer'}
+    
+    logger.info(f'[{session_id}] done generating tokens for user {form_data.username}')
+    return {
+        'username': user.username,
+        'ROLE': user.ROLE,
+        'access-token': access_token,
+        'refresh-token': refresh_token,
+        'token-type': 'Bearer'
+    }
 
 
 @router.post('/refresh')
