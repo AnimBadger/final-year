@@ -27,7 +27,7 @@ RAPID_API_KEY = os.getenv('RAPID_API_KEY')
 
 async def get_user(session_id: str, username: str):
     logger.info(f'[{session_id}] about to find user from database')
-    user = await user_collection.find_one({'username': username})
+    user = await user_collection.find_one({'username': {'$regex': f'^{username}$', '$options': 'i'}})
     logger.info(f'[{session_id}] user details-- {user}')
     if user is None:
         logger.info(f'[{session_id}] no username found')
