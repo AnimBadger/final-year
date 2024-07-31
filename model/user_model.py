@@ -41,3 +41,8 @@ class UserModel(BaseModel):
     otp: Optional[str] = None
     ROLE: str = 'USER'
     activated: bool = False
+
+
+class LoginModel(BaseModel):
+    username: str
+    password: str

@@ -5,7 +5,7 @@ from starlette.requests import Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from config.jwt_config import get_current_user, black_listed_collection, oauth2_scheme
-from model.user_model import CreateUserModel, UserResponseModel, ResetPasswordModel, UserModel
+from model.user_model import CreateUserModel, UserResponseModel, ResetPasswordModel, UserModel, LoginModel
 from fastapi.security import OAuth2PasswordRequestForm
 from config import get_setting
 from config.jwt_config import create_access_token, create_refresh_token
@@ -116,7 +116,7 @@ def verify_password(session_id: str, plain_password: str, hashed_password: str):
 
 
 @router.post('/login')
-async def log_in(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def log_in(request: Request, form_data: LoginModel):
     session_id = request.state.session_id
     logger.info(f'[{session_id}] received login request, about to authenticate')
     
