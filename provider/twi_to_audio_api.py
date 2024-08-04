@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import get_setting
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 import httpx
 from bson import Binary
 
@@ -61,12 +61,12 @@ async def convert_text_to_twi_audio(text: str, dispatch: dict):
         'file_name': dispatch['file_name'] + 'audio',
         'audio_id': audio_id,
         'file': Binary(content),
-        'created_at': datetime.utcnow(),
+        'created_at': datetime.now(timezone.utc),
         'size': str(round(size, 2)) + 'mb'
     }
 
     await audio_files_collection.insert_one(file_data)
-    return audio_id
+    return content
 
 
 async def calculate_to_mb(size_in_byte: int) -> float:
