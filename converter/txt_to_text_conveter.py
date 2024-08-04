@@ -1,7 +1,5 @@
-from fastapi import UploadFile
+from .regex_preprocessor import preprocess_text
 
-
-async def convert_txt_to_text(txt_file: UploadFile) -> str:
-    contents = await txt_file.read()
-    extracted_text = contents.decode('utf-8')
-    return extracted_text
+async def convert_txt_to_text(file_data: bytes) -> str:
+    extracted_text = file_data.decode('utf-8')
+    return preprocess_text(extracted_text)
