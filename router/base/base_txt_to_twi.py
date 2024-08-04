@@ -1,12 +1,9 @@
 import io
-from bson import Binary
 from fastapi.responses import StreamingResponse
-import filetype
 import base64
 from fastapi import APIRouter, HTTPException, Response, status, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import get_setting
-from model.upload_file_model import UploadResponseModel
 from model.upload_file_model import FileUploadModel
 from model.download_audio_model import CommentModel
 import uuid
