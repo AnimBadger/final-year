@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-
-class UploadResponseModel(BaseModel):
-    file_id: str
-    message: str
+class FileUploadModel(BaseModel):
+    file: str
+    file_name: str
+    file_extention: str
