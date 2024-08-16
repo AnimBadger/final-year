@@ -1,5 +1,5 @@
 import io
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import base64
 from fastapi import APIRouter, HTTPException, Response, status, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -78,6 +78,8 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
     else:
         audio_file = await text_to_twi_api.convert_to_twi(text, upload_dispatch)
 
+    audio_string = base64.b64encode(audio_file).decode('utf-8')
+
     file_record = {
         '_id': file_id,
         'file_name': file_name,
@@ -86,8 +88,11 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
         'created_at': datetime.now(timezone.utc)
     }
     await uploads_collection.insert_one(file_record)
-    return Response(content=audio_file, media_type="audio/mpeg")
-
+    return JSONResponse(
+    content={
+        "status": "success",
+        "audio": audio_string
+    })
 '''
 async def upload_file(c_type: str, request: Request, file: UploadFile = File(...),
                       token_data: TokenData = Depends(get_current_user)):
