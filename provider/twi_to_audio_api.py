@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime, timezone
 import httpx
 from bson import Binary
+from config.logger_config import logger
 
 load_dotenv()
 
@@ -25,7 +26,8 @@ headers = {
 }
 
 
-async def convert_text_to_twi_audio(text: str, dispatch: dict):
+async def convert_text_to_twi_audio(text: str, dispatch: dict, session_id: str):
+    logger.info(f'[{session_id}] started processing to twi audio')
     data = {
         "text": text,
         "language": 'tw'
@@ -40,20 +42,23 @@ async def convert_text_to_twi_audio(text: str, dispatch: dict):
                 response = await httpx_client.post(url, headers=headers, json=data)
                 response.raise_for_status()
                 content = response.content
+                logger.info(f'[{session_id}] done generating audio, about to build metadata, success')
                 break
         except (httpx.HTTPStatusError, httpx.RequestError) as exc:
             if attempt == retries - 1:
+                logger.info(f'[{session_id}] Could not convert to twi audio, time out')
                 raise HTTPException(
-                    status_code=401, detail=f'Failed after {retries} attempts: {str(exc)}'
+                    status_code=400, detail=f'Failed after {retries} attempts: {str(exc)}'
                 )
 
             await asyncio.sleep(2 ** attempt)
 
     if content is None:
+        logger.info(f'[{session_id}] Error generating audio')
         raise HTTPException(
             status_code=500, detail='Error obtaining audio file'
         )
-
+    logger.info(f'[{session_id}] building metadata to save and return after successful conversion')
     audio_id = str(uuid.uuid4())
     size = await calculate_to_mb(len(content))
     file_data = {

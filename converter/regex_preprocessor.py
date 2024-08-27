@@ -1,7 +1,8 @@
 import re
+from config.logger_config import logger
 
-
-def preprocess_text(text):
+def preprocess_text(text, session_id):
+    logger.info(f'[{session_id}] processing file to remove symbols')
     # Add spaces between concatenated words
     text = re.sub(r'([a-z])([A-Z])', r'\1 \2', text)
 

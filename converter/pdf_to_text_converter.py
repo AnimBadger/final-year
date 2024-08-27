@@ -1,9 +1,11 @@
 import PyPDF2
 from .regex_preprocessor import preprocess_text
 import os
+from config.logger_config import logger
 
 
-async def convert_pdf_to_text(file_data: bytes, file_name: str) -> str:
+async def convert_pdf_to_text(file_data: bytes, file_name: str, session_id: str) -> str:
+    logger.info(f'[{session_id}] extracting text from pdf')
     tmp_file_path = f'/tmp/{file_name}'
 
     with open(tmp_file_path, 'wb') as tmp_file:
@@ -16,7 +18,7 @@ async def convert_pdf_to_text(file_data: bytes, file_name: str) -> str:
         for page_number in range(len(reader.pages)):
             page = reader.pages[page_number]
             page_text = page.extract_text()
-            page_text = preprocess_text(page_text)
+            page_text = preprocess_text(page_text, session_id)
             extracted_text += page_text
 
     os.remove(tmp_file_path)

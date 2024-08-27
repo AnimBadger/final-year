@@ -41,6 +41,7 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
 
     # Decode the base64 string to binary data
     try:
+        logger.info(f'[{session_id}] about to decode to base64')
         file_data = base64.b64decode(base64_string)
     except Exception:
         logger.info(f'[{session_id}] error decoding base64 string')
@@ -54,7 +55,7 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
 
     if c_type.lower() != 'summarize' and c_type.lower() != 'full':
         raise HTTPException(status_code=400, detail='Bad request, path parameter requires type, summarize or full')
-
+    logger.info(f'[{session_id}] building file metadata')
     file_id = str(uuid.uuid4())
     file_name = upload_request.file_name
 
@@ -66,7 +67,7 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
         'txt': txt_to_text_conveter.convert_txt_to_text
     }
     conversion_function = converters.get(kind)
-    text = await conversion_function(file_data, file_name)
+    text = await conversion_function(file_data, file_name, session_id)
 
     upload_dispatch = {
         'username': token_data.username,
@@ -74,10 +75,14 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
     }
 
     if c_type.lower() == 'summarize':
-        audio_file = await summary_api.get_summary(text, upload_dispatch)
+        logger.info(f'[{session_id}] process is summarize, calling summarize api')
+        audio_file = await summary_api.get_summary(text, upload_dispatch, session_id)
     else:
-        audio_file = await text_to_twi_api.convert_to_twi(text, upload_dispatch)
+        logger.info(f'[{session_id}] process is full, calling ext to twi api')
+        audio_file = await text_to_twi_api.convert_to_twi(text, upload_dispatch, session_id)
 
+
+    logger.info(f'[{session_id}] creating meta data to return, encoding to base64 string')
     audio_string = base64.b64encode(audio_file).decode('utf-8')
 
     file_record = {
@@ -87,6 +92,7 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
         'username': token_data.username,
         'created_at': datetime.now(timezone.utc)
     }
+    logger.info(f'[{session_id}] inserting record to database')
     await uploads_collection.insert_one(file_record)
     return JSONResponse(
     content={
