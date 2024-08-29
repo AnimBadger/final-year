@@ -195,7 +195,7 @@ async def add_comment(comment: CommentModel, token_data: TokenData = Depends(get
         'audio_id': comment .audio_file_id,
         'user': token_data.username,
         'comment': comment.comment,
-        'created_at': datetime.utcnow()
+        'created_at': datetime.now(timezone.utc),
     }
     try:
         await comments_collection.insert_one(comment_data)
