@@ -71,7 +71,7 @@ async def convert_text_to_twi_audio(text: str, dispatch: dict, session_id: str):
     }
 
     await audio_files_collection.insert_one(file_data)
-    return content
+    return {"content": content, "audio_id": audio_id}
 
 
 async def calculate_to_mb(size_in_byte: int) -> float:
