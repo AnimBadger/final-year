@@ -192,9 +192,10 @@ async def add_comment(comment: CommentModel, token_data: TokenData = Depends(get
         )
     comment_data = {
         'comment_id': str(uuid.uuid4())[:5],
-        'audio_id': comment .audio_file_id,
+        'audio_id': comment.audio_file_id,
         'user': token_data.username,
         'comment': comment.comment,
+        'rate': comment.rate,
         'created_at': datetime.now(timezone.utc),
     }
     try:
