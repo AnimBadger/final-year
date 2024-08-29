@@ -4,6 +4,7 @@ from pydantic import BaseModel, validator
 class CommentModel(BaseModel):
     audio_file_id: str
     comment: str
+    rate: int
 
     @validator('comment')
     def validate_comment(cls, value: str):
