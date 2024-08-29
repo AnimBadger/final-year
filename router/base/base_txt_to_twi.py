@@ -76,10 +76,14 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
 
     if c_type.lower() == 'summarize':
         logger.info(f'[{session_id}] process is summarize, calling summarize api')
-        audio_file = await summary_api.get_summary(text, upload_dispatch, session_id)
+        audio_data = await summary_api.get_summary(text, upload_dispatch, session_id)
     else:
         logger.info(f'[{session_id}] process is full, calling ext to twi api')
-        audio_file = await text_to_twi_api.convert_to_twi(text, upload_dispatch, session_id)
+        audio_data = await text_to_twi_api.convert_to_twi(text, upload_dispatch, session_id)
+
+    logger.info(f'[{session_id}] extracting data from returned audio data')
+    audio_file = audio_data['content']
+    audio_id = audio_data['audio_id']
 
 
     logger.info(f'[{session_id}] creating meta data to return, encoding to base64 string')
@@ -96,7 +100,8 @@ async def upload_file(c_type: str, request: Request, upload_request: FileUploadM
     await uploads_collection.insert_one(file_record)
     return JSONResponse(
     content={
-        "status": "success",
+        "status": "success", 
+        "audio_id": audio_id,
         "audio": audio_string
     })
 '''
