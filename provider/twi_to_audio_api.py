@@ -33,7 +33,7 @@ async def convert_text_to_twi_audio(text: str, dispatch: dict, session_id: str):
         "language": 'tw'
     }
 
-    timeout = httpx.Timeout(30.0, connect=10.0)
+    timeout = httpx.Timeout(40.0, connect=10.0)
     retries = 3
 
     for attempt in range(retries):

@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from dotenv import load_dotenv
 from .twi_to_audio_api import convert_text_to_twi_audio
 from config.logger_config import logger
-from tenacity import retry, stop_after_attempt, wait_fixed
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv()
 
@@ -19,7 +19,7 @@ headers = {
 }
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_fixed(5))
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=5, max=60))
 async def convert_to_twi(text: str, _: dict, session_id: str):
     logger.info(f'[{session_id}] started text to twi text generation')
     data = {
