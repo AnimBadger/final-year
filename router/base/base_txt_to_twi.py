@@ -1,7 +1,7 @@
 import io
 from fastapi.responses import JSONResponse, StreamingResponse
 import base64
-from fastapi import APIRouter, HTTPException, Response, status, Depends, Request
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 from motor.motor_asyncio import AsyncIOMotorClient
 from config import get_setting
 from model.upload_file_model import FileUploadModel
