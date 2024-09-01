@@ -71,7 +71,7 @@ async def create_user(user: CreateUserModel, request: Request):
     logger.info(f'[{session_id}] done checking if username or email already exits')
 
     if user_email or username:
-        logger.info(f'[{session_id}] username or password already exists')
+        logger.info(f'[{session_id}] username or email already exists')
         raise HTTPException(status_code=400, detail='Username or Email already exists')
 
     if user.username[:2] == 'AD' and user.username[-2:] == 'MN':
@@ -79,7 +79,7 @@ async def create_user(user: CreateUserModel, request: Request):
     else:
         user_dict['ROLE'] = 'USER'
 
-    logger.info(f'{session_id} username or password not found, about to attempting to create account')
+    logger.info(f'{session_id} username or email not found, about to attempting to create account')
     user_dict['password'] = pwd_context.hash(user.password)
     logger.info(f'[{session_id}] done hashing password')
     logger.info(f'[{session_id}] inserting details to database')
@@ -95,6 +95,7 @@ async def create_user(user: CreateUserModel, request: Request):
     <p><em>Regards,</em></p>
     <p><em>T2TB Team</em></p>
     '''
+    logger.info(f'[{session_id}] about to send Otp to user mail')
     email_sender_response = await mail_sender_utility.send_email(user.email, 'Account Verification',
                                                                  content)
     if email_sender_response != 'success':

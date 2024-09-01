@@ -1,7 +1,7 @@
 import httpx
 import os
 from dotenv import load_dotenv
-from fastapi import HTTPException
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv()
 RAPID_API_KEY = os.getenv('RAPID_API_KEY')
@@ -16,11 +16,8 @@ headers = {
     "Content-Type": "application/json"
 }
 
-
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=5, max=60))
 async def send_email(recipient: str, title: str, body: str):
-    if recipient is None:
-        return 'failed'
-
     payload = {
         "ishtml": "true",
         "sendto": recipient,
