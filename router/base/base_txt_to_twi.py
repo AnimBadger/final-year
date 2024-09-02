@@ -205,3 +205,29 @@ async def add_comment(comment: CommentModel, token_data: TokenData = Depends(get
         return HTTPException(
             status_code=500, detail='Error adding comment, try again later'
         )
+
+
+@router.get('/history')
+async def get_history(token_data: TokenData = Depends(get_current_user)):
+    audio_files_cursor = audio_files_collection.find({'username': token_data.username})
+    history_file = await audio_files_cursor.to_list(length=None)
+    history = []
+
+    for data in history_file:
+        file_data = data.get('file')
+        if isinstance(file_data, bytes):
+            file_data = base64.b64encode(file_data).decode('utf-8')
+        elif not isinstance(file_data, str):
+            file_data = None
+        
+        history_data = {
+            'filename': data.get('file_name'),
+            'audio_id': data.get('audio_id'),
+            'created_at': data.get('created_at'),
+            'size': data.get('size'),
+            'file': file_data
+        }
+
+        history.append(history_data)
+
+    return history
