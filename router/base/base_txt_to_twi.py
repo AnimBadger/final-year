@@ -116,7 +116,7 @@ async def download_audio(audio_id: str, _: TokenData = Depends(get_current_user)
 
 @router.post('/add-comment', status_code=201)
 async def add_comment(comment: CommentModel, token_data: TokenData = Depends(get_current_user)):
-    audio_file = await audio_files_collection.find_one({'audio_id': comment.audio_file_id})
+    audio_file = await audio_files_collection.find_one({'audio_id': comment.audio_id})
     if audio_file['username'] != token_data.username:
         return HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Unauthorized'
