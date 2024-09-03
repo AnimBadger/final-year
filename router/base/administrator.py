@@ -21,7 +21,7 @@ async def get_comments(token: TokenData = Depends(get_current_user)):
             status_code=status.HTTP_401_UNAUTHORIZED, detail='Insufficient privileges'
         )
     
-    comments_cursor = comments_collection.find()
+    comments_cursor = comments_collection.find().sort('created_at', -1)
     files = await comments_cursor.to_list(length=None)
     comments_list = []
     
