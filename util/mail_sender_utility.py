@@ -8,7 +8,7 @@ SENDINBLUE_API_KEY = os.getenv('SENDINBLUE_API_KEY')
 
 url = "https://api.sendinblue.com/v3/smtp/email"
 sender_name = 'Text2Twi'
-sender_email = 'anim.ansah.stephen@gmail.com'
+SENDER_EMAIL = os.getenv('SENDER_EMAIL')
 
 headers = {
     "api-key": SENDINBLUE_API_KEY,
@@ -18,11 +18,11 @@ headers = {
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=5, max=60))
 async def send_email(recipient: str, title: str, body: str):
     payload = {
-        "sender": {"name": sender_name, "email": sender_email},
+        "sender": {"name": sender_name, "email": SENDER_EMAIL},
         "to": [{"email": recipient}],
         "subject": title,
         "htmlContent": body,
-        "replyTo": {"email": sender_email}
+        "replyTo": {"email": SENDER_EMAIL}
     }
     
     async with httpx.AsyncClient() as httpx_client:
