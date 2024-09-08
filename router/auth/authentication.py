@@ -210,7 +210,7 @@ async def reset_password(email: str):
         '''
 
     email_sender_response = await mail_sender_utility.send_email(email, 'Password Reset', content)
-    if email_sender_response != 'success':
+    if email_sender_response == 'success':
         await user_collection.find_one_and_update({'email': email}, {'$set': {'reset_otp': user_otp}})
         return {'message': 'Password reset otp sent'}
     else:
