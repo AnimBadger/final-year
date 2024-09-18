@@ -41,7 +41,7 @@ async def get_comments(token: TokenData = Depends(get_current_user)):
             'created_by': data['user'],
             'comment': data['comment'],
             'created_at': data['created_at'],
-            'rating': data['rate']
+            'rating': data['rating']
         }
         comments_list.append(comment_data)
 
