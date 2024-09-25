@@ -24,8 +24,8 @@ This is a FastAPI application that allows users to upload English files (docx, d
 1. **Clone the Repository:**
 
     ```bash
-    git clone https://github.com/AnimBadger/final-year.git
-    cd final-year
+    git clone https://github.com/AnimBadger/text-to-twi-backend.git
+    cd text-to-twi-backend
     ```
    
 2. **Environment Configuration:**
