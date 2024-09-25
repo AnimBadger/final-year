@@ -211,7 +211,7 @@ async def reset_password(email: str):
 
     email_sender_response = await mail_sender_utility.send_email(email, 'Password Reset', content)
     if email_sender_response == 'success':
-        await user_collection.find_one_and_update({'email': email}, {'$set': {'reset_otp': user_otp}})
+        await user_collection.find_one_and_update({'email': email}, {'$set': {'otp': user_otp}})
         return {'message': 'Password reset otp sent'}
     else:
         HTTPException(
@@ -221,7 +221,7 @@ async def reset_password(email: str):
 
 @router.patch('/reset/{user_otp}', status_code=status.HTTP_202_ACCEPTED)
 async def confirm_and_reset_password(user_otp: str, password_reset: ResetPasswordModel):
-    user = await user_collection.find_one({'reset_otp': user_otp})
+    user = await user_collection.find_one({'otp': user_otp})
     if user is None:
         return HTTPException(
             status_code=404, detail='User not found'
