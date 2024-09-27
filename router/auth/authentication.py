@@ -219,20 +219,40 @@ async def reset_password(email: str):
         )
 
 
+
 @router.patch('/reset/{user_otp}', status_code=status.HTTP_202_ACCEPTED)
-async def confirm_and_reset_password(user_otp: str, password_reset: ResetPasswordModel):
+async def confirm_and_reset_password(user_otp: str, request: Request, password_reset: ResetPasswordModel):
+    session_id = request.state.session_id
+    logger.info(f'[{session_id}] request recieved to reset user password')
+    logger.info(f'[{session_id}] about to query for user with otp {user_otp}')
+
     user = await user_collection.find_one({'otp': user_otp})
     if user is None:
+        logger.info(f'[{session_id}] No user with otp {user_otp} found')
         return HTTPException(
             status_code=404, detail='User not found'
         )
+    logger.info(f'[{session_id}] user found, about to change password')
     if password_reset.password != password_reset.confirm_password:
+        logger.info(f'[{session_id}] Passwords do not match')
+
         return HTTPException(
             status_code=409, detail='Passwords do not match'
         )
+    logger.info(f'[{session_id}] Hashing password to save in database')
     hashed_password = pwd_context.hash(password_reset.password)
+    logger.info(f'[{session_id}] creating access token for user')
+    access_token = create_access_token(session_id, data={'sub': user.get('username')})
+    refresh_token = create_refresh_token(session_id, data={'sub': user.get('username')})
     try:
         await user_collection.find_one_and_update({'user_otp': user_otp}, {'$set': {'password': hashed_password}})
-        return {'message': 'Password reset successful'}
+        logger.info(f'[{session_id}] Done inserting data, returing user')
+        return {
+            'username': user.get('username'),
+            'ROLE': user.get('ROLE'),
+            'access-token': access_token,
+            'refresh-token': refresh_token,
+            'token-type': 'Bearer'
+    }
     except Exception:
         return HTTPException(status_code=500, detail='Error updating password')
