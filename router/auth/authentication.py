@@ -227,25 +227,39 @@ async def confirm_and_reset_password(user_otp: str, request: Request, password_r
     logger.info(f'[{session_id}] about to query for user with otp {user_otp}')
 
     user = await user_collection.find_one({'otp': user_otp})
+    # check if user exists
     if user is None:
         logger.info(f'[{session_id}] No user with otp {user_otp} found')
-        return HTTPException(
+        raise HTTPException(
             status_code=404, detail='User not found'
         )
+    
     logger.info(f'[{session_id}] user found, about to change password')
+    # check if password matches
     if password_reset.password != password_reset.confirm_password:
         logger.info(f'[{session_id}] Passwords do not match')
 
-        return HTTPException(
+        raise HTTPException(
             status_code=409, detail='Passwords do not match'
         )
+    
+    # check if password is the same as the old password
+    if pwd_context.verify(password_reset.password, user['password']):
+        logger.info(f'[{session_id}] New password cannot be the same as the old password')
+        raise HTTPException(
+        status_code=409, detail='New password cannot be the same as the old password'
+    )
+
+    
     logger.info(f'[{session_id}] Hashing password to save in database')
+
     hashed_password = pwd_context.hash(password_reset.password)
     logger.info(f'[{session_id}] creating access token for user')
+
     access_token = create_access_token(session_id, data={'sub': user.get('username')})
     refresh_token = create_refresh_token(session_id, data={'sub': user.get('username')})
     try:
-        await user_collection.find_one_and_update({'user_otp': user_otp}, {'$set': {'password': hashed_password}})
+        await user_collection.find_one_and_update({'otp': user_otp}, {'$set': {'password': hashed_password}})
         logger.info(f'[{session_id}] Done inserting data, returing user')
         return {
             'username': user.get('username'),
@@ -255,4 +269,4 @@ async def confirm_and_reset_password(user_otp: str, request: Request, password_r
             'token-type': 'Bearer'
     }
     except Exception:
-        return HTTPException(status_code=500, detail='Error updating password')
+        raise HTTPException(status_code=500, detail='Error updating password')
