@@ -231,7 +231,7 @@ async def confirm_and_reset_password(user_otp: str, request: Request, password_r
     if user is None:
         logger.info(f'[{session_id}] No user with otp {user_otp} found')
         raise HTTPException(
-            status_code=404, detail='User not found'
+            status_code=404, detail='Invalid OTP, please try again'
         )
     
     logger.info(f'[{session_id}] user found, about to change password')
