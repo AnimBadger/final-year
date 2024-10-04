@@ -6,7 +6,7 @@ from config.logger_config import logger
 
 async def convert_pdf_to_text(file_data: bytes, file_name: str, session_id: str) -> str:
     logger.info(f'[{session_id}] extracting text from pdf')
-    tmp_file_path = f'/tmp/{file_name}'
+    tmp_file_path = os.path.join('/tmp', file_name)
 
     with open(tmp_file_path, 'wb') as tmp_file:
         tmp_file.write(file_data)
